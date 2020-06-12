@@ -1,8 +1,29 @@
+
+
 /*
   STEP 1: using axios, send a GET request to the following URL
     (replacing the placeholder with your Github name):
     https://api.github.com/users/<your name>
 */
+var person = prompt("Please enter a username");
+
+ axios.get("https://api.github.com/users/" + person)
+      .then(res => {
+        console.log(res.data);
+        let newCard = cardMaker(res.data);
+        return res;
+      })
+      .then(res => {
+        axios.get(res.data.followers_url)
+        .then(res2 => {
+          res2.data.forEach(follower => {
+              getUser(follower.login);
+              console.log(follower);
+          });
+        })
+        .catch(err=> console.log(err))
+      })
+      .catch(err => console.log(err));
 
 /*
   STEP 2: Inspect and study the data coming back, this is YOUR
@@ -58,3 +79,71 @@ const followersArray = [];
     luishrd
     bigknell
 */
+let area = document.querySelector('.cards');
+
+function cardMaker(data){
+
+  //Create HTML elements.
+  let card = document.createElement('div');
+  let cardImg = document.createElement('img');
+  let cardInfo = document.createElement('div');
+  let cardName = document.createElement('h3');
+  let User = document.createElement('p');
+  let location = document.createElement('p');
+  let profile = document.createElement('p');
+  let ghLink = document.createElement('a');
+  let followers = document.createElement('p');
+  let following = document.createElement('p');
+  let bio = document.createElement('p');
+
+
+  //Add classes to the HTML elements just created.
+  card.classList.add('card');
+  cardName.classList.add('name');
+  User.classList.add('username');
+  cardInfo.classList.add('card-info');
+
+
+  //Add in the revelant data to select fields.
+  cardImg.src=data.avatar_url;
+
+  if(data.name !== null){
+    cardName.textContent=data.name;
+  } else{
+    cardName.textContent = data.login;
+  };
+
+  
+  User.textContent = data.login;
+  location.textContent = data.location;
+  profile.textContent = "Profile: ";
+  ghLink.href = data.html_url;
+  ghLink.title = data.html_url;
+  ghLink.textContent = data.html_url;
+  followers.textContent = "Followers: " + data.followers;
+  following.textContent = "Following: " + data.following;
+  if(data.bio === null){
+    bio.textContent = data.name + " has not written a bio."
+  } else{
+    bio.textContent = "Bio: " + data.bio;};
+
+  //Append the elements to other elements as needed.
+  area.appendChild(card);
+  card.appendChild(cardImg);
+  card.appendChild(cardInfo);
+  cardInfo.append(cardName, User, location, profile, followers, following, bio);
+  profile.appendChild(ghLink);
+
+}
+
+
+function getUser(username) {
+  axios.get("https://api.github.com/users/" + username)
+  .then(res3 => {
+    let newCard3 = cardMaker(res3.data);
+    let area = document.querySelector('.cards');
+    area.appendChild(newCard3);
+  }).catch(err => {
+    console.log(err);
+  });
+}
